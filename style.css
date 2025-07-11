@@ -1,0 +1,90 @@
+/* 기본 설정 */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 10px; }
+.container { max-width: 700px; margin: 0 auto; background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+h1, h2 { text-align: center; color: #333; }
+hr { border: 0; height: 1px; background-color: #e0e0e0; margin: 20px 0; }
+
+/* 라벨 스타일 */
+label { display: block; margin-bottom: 3px; font-weight: bold; color: #555; font-size: 14px; }
+label strong { font-weight: bold; }
+.example-text { font-size: 12px; font-weight: normal; color: #888; margin-left: 3px; }
+
+/* 입력칸 공통 스타일 */
+input[type="text"], input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+input#game-name { margin-bottom: 10px; }
+input.player-name { margin: 0; }
+
+/* 숫자 입력창 기본 화살표 숨기기 */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; appearance: none; }
+
+/* 바인 금액 조절 그룹 */
+.input-with-buttons { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+.input-with-buttons input { text-align: center; border-left: none; border-right: none; border-radius: 0; }
+
+/* 계산된 값 표시 상자 */
+.starting-chips-container { margin-bottom: 15px; }
+.display-box { display: block; background-color: #eee; padding: 8px; border-radius: 4px; font-size: 14px; font-weight: bold; text-align: left; }
+
+/* 표 스타일 */
+table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; vertical-align: middle; font-size: 14px; }
+th { background-color: #f7f7f7; }
+#player-table th:nth-child(1) { width: 10%; }
+#player-table th:nth-child(2) { width: 25%; }
+#player-table th:nth-child(3) { width: 15%; white-space: pre-wrap; font-size: 12px; }
+#player-table th:nth-child(4) { width: 50%; }
+
+/* 버튼 공통 스타일 */
+.btn { display: inline-block; border: none; padding: 8px 12px; border-radius: 4px; color: white; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; transition: background-color 0.2s; }
+.btn:active { transform: translateY(1px); }
+.btn-full { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; font-size: 16px; }
+.btn-primary { background-color: #007bff; }
+.btn-success { background-color: #28a745; }
+.btn-secondary { background-color: #6c757d; margin-bottom: 10px; }
+
+/* 핸디 액션 버튼 그룹 */
+.action-buttons { display: flex; justify-content: space-around; align-items: center; gap: 2px; }
+.btn-minus, .btn-plus, .btn-reset { flex: 1; margin: 0; padding: 6px 0; font-size: 14px; }
+.btn-minus { background-color: #dc3545; }
+.btn-plus { background-color: #28a745; }
+.btn-reset { background-color: #6c757d; }
+.btn-amount-adjust { font-size: 20px; padding: 4px 12px; background-color: #f0f0f0; color: #333; border: 1px solid #ddd; }
+#buy-in-down { border-radius: 4px 0 0 4px; }
+#buy-in-up { border-radius: 0 4px 4px 0; }
+
+/* 요약 정보 */
+.summary { text-align: right; font-size: 14px; font-weight: bold; margin-top: 10px; }
+.summary p { margin: 5px 0; }
+.warning-text { color: #dc3545; font-weight: bold; }
+
+/* B페이지용 */
+.prize-plus { color: #dc3545; font-weight: bold; }
+.prize-minus { color: #007bff; font-weight: bold; }
+input.chip-input { text-align: center; }
+
+/* 홈 페이지 '지난 게임 기록' 스타일 */
+/* 2번 수정: 레이아웃 변경 */
+#game-list .game-item { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 10px; }
+#game-list .game-info { flex-grow: 1; }
+#game-list .game-info strong { font-size: 16px; }
+#game-list .game-date { font-size: 12px; color: #888; }
+/* 1번 수정: 체크박스 크기 키우기 */
+#game-list input[type="checkbox"] { width: 30px; height: 30px; }
+
+/* 3번 수정: 삭제 버튼 스타일 */
+.delete-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    display: none; /* 평소에는 숨김 */
+}
+/* 체크박스 선택 시 삭제 버튼 보이기 */
+.game-item.is-checked .delete-button {
+    display: inline-block;
+}
