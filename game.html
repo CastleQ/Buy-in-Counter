@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홀덤 정산기 - 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="page-a">
+            <div class="game-title-container">
+                <label for="game-name">
+                    <strong>게임 이름</strong>
+                    <span class="example-text">(예: 5월 12일 00모임 1번째 링게임)</span>
+                </label>
+                <input type="text" id="game-name" placeholder="게임 이름을 입력하세요">
+            </div>
+            
+            <label for="buy-in-amount">바인 당 금액 (₩)</label>
+            <div class="input-with-buttons">
+                <button id="buy-in-down" class="btn btn-amount-adjust">-</button>
+                <input type="number" id="buy-in-amount" value="5000" step="100">
+                <button id="buy-in-up" class="btn btn-amount-adjust">+</button>
+            </div>
+            
+            <div class="starting-chips-container">
+                <label>스타팅 칩</label>
+                <span id="starting-chips-display" class="display-box">50,000</span>
+            </div>
+
+            <table id="player-table">
+                <thead>
+                    <tr>
+                        <th style="width:10%;">#</th>
+                        <th style="width:25%;">이름</th>
+                        <th style="width:15%;">바인<br>횟수</th>
+                        <th style="width:50%;">액션</th>
+                    </tr>
+                </thead>
+                <tbody id="player-list-a"></tbody>
+            </table>
+
+            <div class="summary">
+                <p>바인 횟수 총합: <span id="total-buy-in-count">0</span></p>
+                <p>바인비 총합: <span id="total-buy-in-fee">₩0</span></p>
+            </div>
+            <button id="go-to-b-button" class="btn btn-primary btn-full">게임 종료 및 칩 정산 입력</button>
+        </div>
+        <div id="page-b" style="display: none;">
+            <h2>최종 칩 정산</h2>
+            <button id="back-to-a-button" class="btn btn-secondary">← 바인 현황 수정하기</button>
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>이름</th>
+                        <th>바인<br>횟수</th>
+                        <th>남은 칩 수</th>
+                        <th>프라이즈</th>
+                    </tr>
+                </thead>
+                <tbody id="player-list-b"></tbody>
+            </table>
+            <div class="summary">
+                <p>칩 총합: <span id="summary-total-chips">0</span></p>
+                <p>바인 횟수 총합: <span id="summary-buy-in-count">0</span></p>
+                <p>바인비 총합: <span id="summary-buy-in-fee">₩0</span></p>
+                <p id="total-check-text" class="warning-text"></p>
+            </div>
+            <button id="save-game-button" class="btn btn-success btn-full">이 게임 결과 저장하고 홈으로</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
