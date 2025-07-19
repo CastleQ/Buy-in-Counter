@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <strong>${game.name}</strong>
                     <div class="game-date">${gameDate}</div>
                 </div>
+                <button class="view-button" data-game-id="${game.id}">보기</button>
                 <button class="delete-button" data-game-id="${game.id}">삭제</button>
             `;
             gameListDiv.appendChild(gameItem);
@@ -30,10 +31,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     gameListDiv.addEventListener('click', (e) => {
+        const gameId = e.target.dataset.gameId;
+        if (!gameId) return;
+
+        // 보기 버튼 눌렀을 때
+        if (e.target.classList.contains('view-button')) {
+            const gameToView = allGames.find(game => String(game.id) === gameId);
+            if (gameToView) {
+                sessionStorage.setItem('gameToView', JSON.stringify(gameToView));
+                window.location.href = 'game.html';
+            }
+        }
+
+        // 삭제 버튼을 눌렀을 때
         if (e.target.classList.contains('delete-button')) {
-            const gameIdToDelete = e.target.dataset.gameId;
             if (confirm('정말로 이 게임 기록을 삭제하시겠습니까? 되돌릴 수 없습니다.')) {
-                allGames = allGames.filter(game => String(game.id) !== gameIdToDelete);
+                allGames = allGames.filter(game => String(game.id) !== gameId);
                 localStorage.setItem('holdemGames', JSON.stringify(allGames));
                 renderGameList();
             }
