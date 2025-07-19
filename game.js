@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToAButton = document.getElementById('back-to-a-button');
 
     let players = [];
+    let gameIdToUpdate = null;
 
     // ## 2. 기능 함수들
     function updateStartingChips() {
@@ -39,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td><input type="text" class="player-name" data-id="${index}" value=""></td>
-                <td><span class="buy-in-count" data-id="${index}">0</span></td>
+                <td><input type="text" class="player-name" data-id="${index}" value="${player.name}"></td>
+                <td><span class="buy-in-count" data-id="${index}">${player.buyInCount}</span></td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn btn-minus" data-id="${index}">-1</button>
@@ -85,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = e.target.dataset.id;
         if (!id) return;
         const nameInput = document.querySelector(`.player-name[data-id="${id}"]`);
-        if(nameInput) players[id].name = nameInput.value;
+        if (nameInput) players[id].name = nameInput.value;
         const targetPlayer = players[id];
         if (!targetPlayer) return;
         let countChanged = false;
@@ -139,11 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalChips = 0;
         let totalBuyInForB = 0;
         const buyInAmount = Number(buyInAmountInput.value) || 0;
+
         players.forEach((player) => {
             if (!player.name) return;
+            // 이전 데이터에 prize 값이 없을 수 있으므로 계산을 여기서 다시 수행
             player.prize = (player.chips / 10) - (player.buyInCount * buyInAmount);
             totalChips += player.chips;
             totalBuyInForB += player.buyInCount;
+
             const row = document.createElement('tr');
             const prizeClass = player.prize > 0 ? 'prize-plus' : (player.prize < 0 ? 'prize-minus' : '');
             row.innerHTML = `<td>${player.name}</td><td>${player.buyInCount}</td><td><input type="number" class="chip-input" data-id="${player.id}" value="${player.chips}"></td><td class="${prizeClass}">₩${player.prize.toLocaleString()}</td>`;
@@ -160,44 +164,101 @@ document.addEventListener('DOMContentLoaded', () => {
             totalCheckText.textContent = `칩 총합과 바인비 총합이 ${discrepancy.toLocaleString()} 만큼 맞지 않습니다!`;
             totalCheckText.style.display = 'block';
         } else {
-            totalCheckText.style.display = 'none'; 
+            totalCheckText.style.display = 'none';
         }
     }
 
     playerListB.addEventListener('change', (e) => {
         if (e.target.classList.contains('chip-input')) {
             const id = e.target.dataset.id;
-            players[id].chips = Number(e.target.value) || 0;
-            renderB();
+            const playerToUpdate = players.find(p => p.id == id);
+            if(playerToUpdate) {
+                playerToUpdate.chips = Number(e.target.value) || 0;
+                renderB();
+            }
         }
     });
 
     saveGameButton.addEventListener('click', () => {
         if (!gameNameInput.value) { alert('게임 이름을 입력해주세요.'); return; }
-        const allGames = JSON.parse(localStorage.getItem('holdemGames')) || [];
-        const newGame = {
-            id: Date.now(), name: gameNameInput.value,
-            players: players.filter(p => p.name).map(p => ({ name: p.name, prize: p.prize }))
-        };
-        allGames.push(newGame);
+        let allGames = JSON.parse(localStorage.getItem('holdemGames')) || [];
+
+        const currentPlayersData = players.filter(p => p.name).map(p => ({
+            id: p.id,
+            name: p.name,
+            buyInCount: p.buyInCount,
+            chips: p.chips,
+            prize: p.prize
+        }));
+
+        if (gameIdToUpdate) {
+            const gameIndex = allGames.findIndex(game => String(game.id) === String(gameIdToUpdate));
+            if (gameIndex > -1) {
+                allGames[gameIndex].name = gameNameInput.value;
+                allGames[gameIndex].buyInAmount = Number(buyInAmountInput.value);
+                allGames[gameIndex].players = currentPlayersData;
+            }
+        } else {
+            const newGame = {
+                id: Date.now(),
+                name: gameNameInput.value,
+                buyInAmount: Number(buyInAmountInput.value),
+                players: currentPlayersData
+            };
+            allGames.push(newGame);
+        }
+
         localStorage.setItem('holdemGames', JSON.stringify(allGames));
         alert('게임 결과가 저장되었습니다!');
         window.location.href = 'index.html';
     });
-    
-    // ## 4. 초기화
-    for (let i = 0; i < 12; i++) {
-        players.push({ id: i, name: '', buyInCount: 0, chips: 0, prize: 0 });
+
+    // ## 4. 초기화 로직
+    const gameToViewJSON = sessionStorage.getItem('gameToView');
+
+    if (gameToViewJSON) {
+        // '보기/수정 모드'일 때
+        const gameData = JSON.parse(gameToViewJSON);
+        gameIdToUpdate = gameData.id;
+        gameNameInput.value = gameData.name;
+        buyInAmountInput.value = gameData.buyInAmount || 5000; // 이전 데이터에 없을 경우 대비
+
+        // 이전 데이터에 buyInCount, chips 등이 없을 경우를 대비해 기본값 설정
+        const loadedPlayers = gameData.players.map((p, index) => ({
+            id: index,
+            name: p.name || '',
+            buyInCount: p.buyInCount || 0,
+            chips: p.chips || 0,
+            prize: p.prize || 0
+        }));
+        players = loadedPlayers;
+
+        const needed = 12 - players.length;
+        for (let i = 0; i < needed; i++) {
+            players.push({ id: players.length, name: '', buyInCount: 0, chips: 0, prize: 0 });
+        }
+        
+        sessionStorage.removeItem('gameToView');
+        
+        // 보기 모드일 때 바로 B페이지를 보여주기
+        pageA.style.display = 'none';
+        pageB.style.display = 'block';
+        renderB();
+
+    } else {
+        // '새 게임 모드'일 때
+        for (let i = 0; i < 12; i++) {
+            players.push({ id: i, name: '', buyInCount: 0, chips: 0, prize: 0 });
+        }
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        gameNameInput.value = `${month}월${day}일 ${hours}:${minutes} 링게임`;
+
+        updateStartingChips();
+        initialRenderA();
+        updateTotals();
     }
-
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    gameNameInput.value = `${month}월${day}일 ${hours}:${minutes} 링게임`;
-
-    updateStartingChips();
-    initialRenderA();
-    updateTotals();
 });
