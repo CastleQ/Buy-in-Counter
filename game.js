@@ -14,9 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const buyInUpBtn = document.getElementById('buy-in-up');
     const buyInDownBtn = document.getElementById('buy-in-down');
     const backToAButton = document.getElementById('back-to-a-button');
+    const loadPlayersButton = document.getElementById('load-previous-players');
 
     let players = [];
     let gameIdToUpdate = null;
+    let isDirty = false;
 
     // ## 2. 기능 함수들
     function updateStartingChips() {
@@ -56,20 +58,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ## 3. 이벤트 처리
     buyInUpBtn.addEventListener('click', () => {
+        isDirty = true;
         buyInAmountInput.stepUp();
         buyInAmountInput.dispatchEvent(new Event('input'));
     });
     buyInDownBtn.addEventListener('click', () => {
+        isDirty = true;
         buyInAmountInput.stepDown();
         buyInAmountInput.dispatchEvent(new Event('input'));
     });
     buyInAmountInput.addEventListener('input', () => {
+        isDirty = true;
         updateStartingChips();
         updateTotals();
     });
 
     playerListA.addEventListener('change', (e) => {
         if (e.target.classList.contains('player-name')) {
+            isDirty = true;
             const id = e.target.dataset.id;
             const name = e.target.value;
             players[id].name = name;
@@ -107,12 +113,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (countChanged) {
+            isDirty = true;
             const countSpan = document.querySelector(`.buy-in-count[data-id="${id}"]`);
             if (countSpan) countSpan.textContent = targetPlayer.buyInCount;
             updateTotals();
         }
     });
+    
+    loadPlayersButton.addEventListener('click', () => {
+        const allGames = JSON.parse(localStorage.getItem('holdemGames')) || [];
+        if (allGames.length === 0) {
+            alert('불러올 지난 게임 기록이 없습니다.');
+            return;
+        }
+        if (confirm('직전 게임 참가자 명단을 불러오시겠습니까? 현재 입력된 이름은 덮어씌워집니다.')) {
+            isDirty = true;
+            allGames.sort((a, b) => b.id - a.id);
+            const lastGame = allGames[0];
+            for (let i = 0; i < 12; i++) {
+                if (lastGame.players[i] && lastGame.players[i].name) {
+                    players[i].name = lastGame.players[i].name;
+                    players[i].buyInCount = 1;
+                } else {
+                    players[i].name = '';
+                    players[i].buyInCount = 0;
+                }
+            }
+            initialRenderA();
+            updateTotals();
+        }
+    });
 
+    // --- B페이지 및 저장 관련 로직 ---
     goToBButton.addEventListener('click', () => {
         const nameInputs = document.querySelectorAll('.player-name');
         nameInputs.forEach((input, index) => {
@@ -140,14 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalChips = 0;
         let totalBuyInForB = 0;
         const buyInAmount = Number(buyInAmountInput.value) || 0;
-
         players.forEach((player) => {
             if (!player.name) return;
-            // 이전 데이터에 prize 값이 없을 수 있으므로 계산을 여기서 다시 수행
             player.prize = (player.chips / 10) - (player.buyInCount * buyInAmount);
             totalChips += player.chips;
             totalBuyInForB += player.buyInCount;
-
             const row = document.createElement('tr');
             const prizeClass = player.prize > 0 ? 'prize-plus' : (player.prize < 0 ? 'prize-minus' : '');
             row.innerHTML = `<td>${player.name}</td><td>${player.buyInCount}</td><td><input type="number" class="chip-input" data-id="${player.id}" value="${player.chips}"></td><td class="${prizeClass}">₩${player.prize.toLocaleString()}</td>`;
@@ -160,8 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryBuyInFee.textContent = `₩${totalFeeForB.toLocaleString()}`;
 
         const discrepancy = (totalFeeForB * 10) - totalChips;
-        if (discrepancy !== 0) {
-            totalCheckText.textContent = `칩 총합과 바인비 총합이 ${discrepancy.toLocaleString()} 만큼 맞지 않습니다!`;
+        if (discrepancy > 0) {
+            totalCheckText.innerHTML = `※${discrepancy.toLocaleString()}칩 만큼 칩을 <strong class="prize-minus">'덜'</strong> 셌어요!※`;
+            totalCheckText.style.display = 'block';
+        } else if (discrepancy < 0) {
+            const absoluteDiff = Math.abs(discrepancy);
+            totalCheckText.innerHTML = `※${absoluteDiff.toLocaleString()}칩 만큼 칩을 <strong class="prize-plus">'더'</strong> 셌어요!※`;
             totalCheckText.style.display = 'block';
         } else {
             totalCheckText.style.display = 'none';
@@ -170,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     playerListB.addEventListener('change', (e) => {
         if (e.target.classList.contains('chip-input')) {
+            isDirty = true;
             const id = e.target.dataset.id;
             const playerToUpdate = players.find(p => p.id == id);
             if(playerToUpdate) {
@@ -180,17 +214,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     saveGameButton.addEventListener('click', () => {
+        isDirty = false;
         if (!gameNameInput.value) { alert('게임 이름을 입력해주세요.'); return; }
         let allGames = JSON.parse(localStorage.getItem('holdemGames')) || [];
-
         const currentPlayersData = players.filter(p => p.name).map(p => ({
-            id: p.id,
-            name: p.name,
-            buyInCount: p.buyInCount,
-            chips: p.chips,
-            prize: p.prize
+            id: p.id, name: p.name, buyInCount: p.buyInCount, chips: p.chips, prize: p.prize
         }));
-
         if (gameIdToUpdate) {
             const gameIndex = allGames.findIndex(game => String(game.id) === String(gameIdToUpdate));
             if (gameIndex > -1) {
@@ -200,14 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             const newGame = {
-                id: Date.now(),
-                name: gameNameInput.value,
+                id: Date.now(), name: gameNameInput.value,
                 buyInAmount: Number(buyInAmountInput.value),
                 players: currentPlayersData
             };
             allGames.push(newGame);
         }
-
         localStorage.setItem('holdemGames', JSON.stringify(allGames));
         alert('게임 결과가 저장되었습니다!');
         window.location.href = 'index.html';
@@ -215,36 +242,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ## 4. 초기화 로직
     const gameToViewJSON = sessionStorage.getItem('gameToView');
-
     if (gameToViewJSON) {
         // '보기/수정 모드'일 때
         const gameData = JSON.parse(gameToViewJSON);
         gameIdToUpdate = gameData.id;
         gameNameInput.value = gameData.name;
-        buyInAmountInput.value = gameData.buyInAmount || 5000; // 이전 데이터에 없을 경우 대비
-
-        // 이전 데이터에 buyInCount, chips 등이 없을 경우를 대비해 기본값 설정
+        buyInAmountInput.value = gameData.buyInAmount || 5000;
         const loadedPlayers = gameData.players.map((p, index) => ({
-            id: index,
-            name: p.name || '',
-            buyInCount: p.buyInCount || 0,
-            chips: p.chips || 0,
-            prize: p.prize || 0
+            id: index, name: p.name || '', buyInCount: p.buyInCount || 0,
+            chips: p.chips || 0, prize: p.prize || 0
         }));
         players = loadedPlayers;
-
         const needed = 12 - players.length;
         for (let i = 0; i < needed; i++) {
             players.push({ id: players.length, name: '', buyInCount: 0, chips: 0, prize: 0 });
         }
-        
         sessionStorage.removeItem('gameToView');
-        
-        // 보기 모드일 때 바로 B페이지를 보여주기
         pageA.style.display = 'none';
         pageB.style.display = 'block';
-        renderB();
+        
+        // === '보기 모드'일 때 버튼 숨기기 추가 ===
+        backToAButton.style.display = 'none';
+        // ======================================
 
+        renderB();
     } else {
         // '새 게임 모드'일 때
         for (let i = 0; i < 12; i++) {
@@ -256,9 +277,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         gameNameInput.value = `${month}월${day}일 ${hours}:${minutes} 링게임`;
-
-        updateStartingChips();
-        initialRenderA();
-        updateTotals();
     }
+    updateStartingChips();
+    initialRenderA();
+    updateTotals();
+    
+    // ## 5. 페이지 이탈 방지 경고창 추가
+    window.addEventListener('beforeunload', (event) => {
+        if (isDirty) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
 });

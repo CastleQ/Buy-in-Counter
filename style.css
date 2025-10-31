@@ -27,18 +27,27 @@ input[type=number] { -moz-appearance: textfield; appearance: none; }
 .starting-chips-container { margin-bottom: 15px; }
 .display-box { display: block; background-color: #eee; padding: 8px; border-radius: 4px; font-size: 14px; font-weight: bold; text-align: left; }
 
+/* '직전 게임 참가자 불러오기' 버튼 */
+.load-players-container { text-align: right; margin-bottom: 10px; }
+.load-players-container .btn { padding: 6px 10px; font-size: 12px; background-color: #007bff; }
+
 /* 표 스타일 */
 table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
 th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; vertical-align: middle; font-size: 14px; }
 th { background-color: #f7f7f7; }
+
+/* A페이지 표 너비 */
 #player-table th:nth-child(1) { width: 10%; }
 #player-table th:nth-child(2) { width: 25%; }
 #player-table th:nth-child(3) { width: 15%; white-space: pre-wrap; font-size: 12px; }
 #player-table th:nth-child(4) { width: 50%; }
-#result-table th:nth-child(1) { width: 30%; }
-#result-table th:nth-child(2) { width: 15%; white-space: pre-wrap; font-size: 12px; }
-#result-table th:nth-child(3) { width: 20%; }
-#result-table th:nth-child(4) { width: 35%; }
+
+/* B페이지 표 너비 (수정된 부분) */
+#result-table th:nth-child(1), #result-table td:nth-child(1) { width: 28%; } /* 이름 (30% -> 28%) */
+#result-table th:nth-child(2), #result-table td:nth-child(2) { width: 15%; white-space: pre-wrap; font-size: 12px; } /* 바인 횟수 (15% 유지) */
+#result-table th:nth-child(3), #result-table td:nth-child(3) { width: 25%; } /* 남은 칩 수 (20% -> 25%) */
+#result-table th:nth-child(4), #result-table td:nth-child(4) { width: 32%; } /* 프라이즈 (35% -> 32%) */
+
 
 /* 버튼 공통 스타일 */
 .btn { display: inline-block; border: none; padding: 8px 12px; border-radius: 4px; color: white; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; transition: background-color 0.2s; }
@@ -68,17 +77,14 @@ th { background-color: #f7f7f7; }
 .prize-minus { color: #007bff; font-weight: bold; }
 input.chip-input { text-align: center; }
 
-/* 홈 페이지 '지난 게임 기록' 스타일 */
+/* 홈 페이지 스타일 */
 #game-list .game-item { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 10px; }
 #game-list .game-info { flex-grow: 1; }
 #game-list .game-info strong { font-size: 16px; }
 #game-list .game-date { font-size: 12px; color: #888; }
 #game-list input[type="checkbox"] { width: 30px; height: 30px; }
-
-/* 보기, 삭제 버튼 스타일 */
-.view-button, .delete-button { display: none; /* 평소에는 숨김 */ border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; color: white; margin-left: 5px; }
+.view-button, .delete-button { display: none; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; color: white; margin-left: 5px; }
 .view-button { background-color: #007bff; }
 .delete-button { background-color: #ff4d4d; }
-/* 체크박스 선택 시 보기, 삭제 버튼 보이기 */
 .game-item.is-checked .view-button,
 .game-item.is-checked .delete-button { display: inline-block; }
